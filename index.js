@@ -28,7 +28,7 @@ const { RedisPubSub } = require("graphql-redis-subscriptions");
       viewMessages: [Message!]
     }
     type Mutation {
-      sendMessage(name: String, content: String): Message!
+      sendMessage(params: DataInput): Message!
     }
     type Subscription {
       receiveMessage: Message!
@@ -37,6 +37,10 @@ const { RedisPubSub } = require("graphql-redis-subscriptions");
         id: ID!
         name: String!
         content: String
+    }
+    input DataInput {
+      name: String 
+      content: String
     }
   `;
 
@@ -48,13 +52,10 @@ const { RedisPubSub } = require("graphql-redis-subscriptions");
       },
     },
     Mutation: {
-      sendMessage: (parent, { name, content }) => {
+      sendMessage: (parent, { params }) => {
         const id = messages.length;
-        var new_message = {
-            id,
-            name,
-            content
-        }
+        params.id = id
+        var new_message = params;
         messages.push(new_message);
         pubsub.publish("MessageService", {receiveMessage: new_message});
         return new_message;
